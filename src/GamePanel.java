@@ -29,6 +29,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     GamePanel(){
         this.setPreferredSize(new Dimension(SIDE_UNITS*UNIT_SIZE, SIDE_UNITS*UNIT_SIZE));
         this.setBackground(Color.BLACK);
+        this.addKeyListener(this);
+        this.setFocusable(true);
 
         random = new Random();
         setupGame();
@@ -46,7 +48,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
 
         isSnakeAlive = true;
-        snakeSize = 1;
+        snakeSize = 3;
         direction = 'u';
         //spawn snake in the middle
         snakeX[0] = SIDE_UNITS/2;
@@ -57,11 +59,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     }
 
     void run(){
+        System.out.println("snakeSize = " + snakeSize);
         if(checkForApple()){
             snakeSize++;
             move();
             spawnNewHead();
-            updateBoard();
+            //updateBoard();
             nextApple();
             updateBoard();
         } else{
@@ -72,7 +75,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     }
 
     void move(){
-        for (int i = 1; i < snakeSize; i++) {
+        for (int i = snakeSize-1; i > 0; i++) {
             snakeX[i] = snakeX[i-1];
             snakeY[i] = snakeY[i-1];
         }
@@ -96,9 +99,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     }
 
     void updateBoard(){
+        //reset
+        for (int i = 0; i < SIDE_UNITS; i++) {
+            for (int j = 0; j < SIDE_UNITS; j++) {
+                board[i][j] = ' ';
+            }
+        }
         //update for snake
         for (int i = 0; i < snakeSize; i++){
             board[snakeY[i]][snakeX[i]] = 's';
+            System.out.println("Updated " + i + "body Parts");
         }
         //update for apple
         board[appleY][appleX] = 'a';
@@ -129,7 +139,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             appleY = random.nextInt(SIDE_UNITS);
 
             //check if cell already occuppied
-            if(board[appleX][appleY] != ' '){
+            if(board[appleY][appleX] != ' '){
                 repeat = true;
             }
         } while(repeat);
@@ -172,7 +182,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         if(isSnakeAlive){run();}
         this.repaint();
-        printBoard();
+        if(snakeSize>10){printBoard();};
     }
 
     @Override
@@ -184,22 +194,21 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()){
             case KeyEvent.VK_UP -> {
-                direction = 'u';
-            }
-            case KeyEvent.VK_DOWN -> {
-                direction = 'd';
-            }
-            case KeyEvent.VK_LEFT -> {
                 direction = 'l';
             }
-            case KeyEvent.VK_RIGHT -> {
+            case KeyEvent.VK_DOWN -> {
                 direction = 'r';
+            }
+            case KeyEvent.VK_LEFT -> {
+                direction = 'u';
+            }
+            case KeyEvent.VK_RIGHT -> {
+                direction = 'd';
             }
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-
     }
 }
