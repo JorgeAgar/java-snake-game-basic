@@ -7,8 +7,8 @@ import java.awt.event.KeyListener;
 import java.util.Random;
 
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
-    final int UNIT_SIZE = 10;
-    final int SIDE_UNITS = 50;
+    final int UNIT_SIZE = 15;
+    final int SIDE_UNITS = 40;
 
     char[][] board = new char[SIDE_UNITS][SIDE_UNITS];
 
@@ -35,7 +35,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         random = new Random();
         setupGame();
 
-        timer = new Timer(250, this);
+        timer = new Timer(150, this);
         timer.start();
     }
 
@@ -59,7 +59,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     }
 
     void run(){
-        System.out.println("snakeSize = " + snakeSize);
+        //System.out.println("snakeSize = " + snakeSize);
         if(checkForApple()){
             snakeSize++;
             move();
@@ -72,10 +72,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             spawnNewHead();
             updateBoard();
         }
+        checkCollision();
     }
 
     void move(){
-        for (int i = snakeSize-1; i > 0; i++) {
+        for (int i = snakeSize-1; i > 0; i--) {
             snakeX[i] = snakeX[i-1];
             snakeY[i] = snakeY[i-1];
         }
@@ -98,6 +99,22 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    void checkCollision(){
+        int[] xClone = snakeX.clone();
+        int[] yClone = snakeY.clone();
+        //check collision with body
+        for (int i = 0; i < snakeSize; i++) {
+            for (int j = 0; j < snakeSize; j++) {
+                if(i != j && xClone[i] == snakeX[j] && yClone[i] == snakeY[j]){
+                    isSnakeAlive = false;
+                    timer.stop();
+                    System.out.println("Game over");
+                    break;
+                }
+            }
+        }
+    }
+
     void updateBoard(){
         //reset
         for (int i = 0; i < SIDE_UNITS; i++) {
@@ -108,7 +125,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         //update for snake
         for (int i = 0; i < snakeSize; i++){
             board[snakeY[i]][snakeX[i]] = 's';
-            System.out.println("Updated " + i + "body Parts");
+            //System.out.println("Updated " + i + "body Parts");
         }
         //update for apple
         board[appleY][appleX] = 'a';
@@ -166,7 +183,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                         g.fillRect(i*UNIT_SIZE, j*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     }
                     case 's' -> {
-                        g.setColor(Color.GREEN);
+                        if(snakeY[0]==i && snakeX[0]==j){g.setColor(new Color(150, 255, 150));} //if head
+                        else{g.setColor(new Color(0, 150, 0));} //rest of the body
                         g.fillRect(i*UNIT_SIZE, j*UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     }
                     case 'a' -> {
@@ -176,13 +194,23 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 }
             }
         }
+        //paint score
+        g.setColor(Color.LIGHT_GRAY);
+        g.setFont( new Font("Monospace",Font.BOLD, 20));
+        g.drawString("Score: "+ snakeSize, 5, g.getFont().getSize());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(isSnakeAlive){run();}
+        try{
+            if(isSnakeAlive){run();}
+        } catch(java.lang.ArrayIndexOutOfBoundsException exception){
+            isSnakeAlive = false;
+            timer.stop();
+            System.out.println("Game over");
+        }
         this.repaint();
-        if(snakeSize>10){printBoard();};
+        //if(snakeSize>10){printBoard();};
     }
 
     @Override
